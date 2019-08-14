@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 
 public class MultiServer {
@@ -89,15 +90,45 @@ public class MultiServer {
 		if (user.rNum == 0) {
 			r = waitRoom;
 		}
+		String[] ban = msg.split(" ");
+		for (int i = 0; i < ban.length; i++) {
+			if (user.banWord.contains(ban[i])) {
+				char[] ch = null;
+				ch = ban[i].toCharArray();
+				for (int j = 0; j < ban[i].length(); j++) {
+					ch[j] = '*';
+				}
+				String str = new String(ch);
+				ban[i] = str;
+			}
+		}
+		String msg1 = "";
+		for (int i = 0; i < ban.length; i++) {
+			msg1 += ban[i] + " ";
+		}
 		Iterator<User> ru = r.roomUser.iterator();
 		while (ru.hasNext()) {
 			try {
 				String id = ru.next().id;
-				// System.out.println(id);
 				PrintWriter it_out = (PrintWriter) clientMap.get(id);
-				it_out.println("[" + URLEncoder.encode(user.nickName, "UTF-8") + "]" + URLEncoder.encode(msg, "UTF-8"));
+				it_out.println(
+						"[" + URLEncoder.encode(user.nickName, "UTF-8") + "]" + URLEncoder.encode(msg1, "UTF-8"));
+//				if (ru.next().banUser.isEmpty()) {
+//					Iterator<User> bu = ru.next().banUser.iterator();
+//					if (!bu.next().banUser.contains(user.nickName)) {
+//						it_out.println("[" + URLEncoder.encode(user.nickName, "UTF-8") + "]"
+//								+ URLEncoder.encode(msg1, "UTF-8"));
+//					} else {
+//						it_out.println("[" + URLEncoder.encode(user.nickName, "UTF-8") + "]"
+//								+ URLEncoder.encode(msg1, "UTF-8"));
+//					}
+//				} else {
+//					it_out.println(
+//							"[" + URLEncoder.encode(user.nickName, "UTF-8") + "]" + URLEncoder.encode(msg1, "UTF-8"));
+//				}
 			} catch (Exception e) {
-				System.out.println("server예외allmsg : " + e);
+				System.out.println("server예외msg : " + e);
+				e.printStackTrace();
 			}
 		}
 	}
@@ -122,8 +153,12 @@ public class MultiServer {
 					send += msgs[i];
 				String info = "";
 				String pw = "";
-				out.println(URLEncoder.encode(command, "UTF-8"));
+				System.out.println(command);
 				switch (command) {
+				case "/exit":
+					out.println(URLEncoder.encode("접속을 종료합니다.", "UTF-8"));
+					exit(u);
+					break;
 				case "/to":
 					sendOne(msgs[1], send);
 					break;
@@ -131,33 +166,105 @@ public class MultiServer {
 					out.println(URLEncoder.encode("비밀번호 설정?(Y/N)", "UTF-8"));
 					pw = in.readLine();
 					createRoom(u, msgs[1], pw, out, in);
+					sendMsg(user, "┌─────────────────────────┐", out);
+					sendMsg(user, "├   " + msgs[1] + "방에 입장하셨습니다. ┤", out);
+					sendMsg(user, "└─────────────────────────┘", out);
 					break;
 				case "/enter":
 					enterRoom(u, msgs[1], out, in);
+					sendMsg(user, "┌─────────────────────────────────┐", out);
+					sendMsg(user, "├ " + user.nickName + "님이 " + msgs[1] + "방에 입장하셨습니다. ┤", out);
+					sendMsg(user, "└─────────────────────────────────┘", out);
+					break;
+				case "/monitoring":
+					monitoring(u, msgs[1]);
+					break;
+				case "/managerDelete":
+					managerDelete(u, msgs[1]);
+					break;
+				case "/blacklist":
+					blackList(u, msgs[1]);
+					break;
+				case "/banuser":
+					banUser(u, msgs[1]);
 					break;
 				case "/out":
+					sendMsg(user, "┌─────────────────────────┐", out);
+					sendMsg(user, "│   방에서 나가셨습니다.  │ ", out);
+					sendMsg(user, "└─────────────────────────┘", out);
 					outRoom(u);
 					break;
+				case "/invite":
+					sendMsg(user, "┌─────────────────────────┐", out);
+					sendMsg(user, "├ " + msgs[1] + "님을 초대하셨습니다. ┤", out);
+					sendMsg(user, "└─────────────────────────┘", out);
+					invite(u, msgs[1], out, in);
+					sendMsg(user, "┌─────────────────────────┐", out);
+					sendMsg(user, "├ " + msgs[1] + "님이 입장하셨습니다. ┤", out);
+					sendMsg(user, "└─────────────────────────┘", out);
+					break;
+				case "/kickout":
+					sendMsg(user, "┌─────────────────────────┐", out);
+					sendMsg(user, "├ " + msgs[1] + "님을 강퇴합니다. ┤", out);
+					sendMsg(user, "└─────────────────────────┘", out);
+					kickOut(u, msgs[1]);
+					break;
+				case "/changeowner":
+					sendMsg(user, "┌─────────────────────────┐", out);
+					sendMsg(user, "├ " + msgs[1] + "님으로 방장을 변경합니다. ┤", out);
+					sendMsg(user, "└─────────────────────────┘", out);
+					changeOwner(u, msgs[1]);
+					break;
+				case "/roomdelete":
+					roomDelete(u);
+					sendMsg(user, "┌─────────────────────────┐", out);
+					sendMsg(user, "│    방을 폭파했습니다.   │", out);
+					sendMsg(user, "└─────────────────────────┘", out);
+					break;
+				case "/banword":
+					sendMsg(user, "┌─────────────────────────┐", out);
+					sendMsg(user, "├ " + msgs[1] + "을 금칙어에 추가합니다. ┤", out);
+					sendMsg(user, "└─────────────────────────┘", out);
+					banWord(u, msgs[1]);
+					break;
 				case "/list":
+					out.println(URLEncoder.encode("┌─────────────────────────────┐", "UTF-8"));
+					out.println(URLEncoder.encode("│ 사용자 리스트를 출력합니다. │", "UTF-8"));
+					out.println(URLEncoder.encode("└─────────────────────────────┘", "UTF-8"));
 					list(out);
 					break;
 				case "/getRoomInfo":
+					out.println(URLEncoder.encode("┌───────────────────────────┐", "UTF-8"));
+					out.println(URLEncoder.encode("│ 현재 방정보를 출력합니다. │", "UTF-8"));
+					out.println(URLEncoder.encode("└───────────────────────────┘", "UTF-8"));
 					info = getRoomInfo();
 					out.println(URLEncoder.encode(info, "UTF-8"));
 					break;
 				case "/orinfo":
+					out.println(URLEncoder.encode("┌───────────────────────────────┐", "UTF-8"));
+					out.println(URLEncoder.encode("│ 현재 공개방정보를 출력합니다. │", "UTF-8"));
+					out.println(URLEncoder.encode("└───────────────────────────────┘", "UTF-8"));
 					info = getORoomInfo();
 					out.println(URLEncoder.encode(info, "UTF-8"));
 					break;
 				case "/crinfo":
+					out.println(URLEncoder.encode("┌───────────────────────────────┐", "UTF-8"));
+					out.println(URLEncoder.encode("│ 현재 비밀방정보를 출력합니다. │", "UTF-8"));
+					out.println(URLEncoder.encode("└───────────────────────────────┘", "UTF-8"));
 					info = getCRoomInfo();
 					out.println(URLEncoder.encode(info, "UTF-8"));
 					break;
 				case "/getRoomMember":
+					out.println(URLEncoder.encode("┌───────────────────────────┐", "UTF-8"));
+					out.println(URLEncoder.encode("│ 현재 방인원을 출력합니다. │", "UTF-8"));
+					out.println(URLEncoder.encode("└───────────────────────────┘", "UTF-8"));
 					info = getRoomMember(u);
 					out.println(URLEncoder.encode(info, "UTF-8"));
 					break;
 				case "/getWaitMember":
+					out.println(URLEncoder.encode("┌────────────────────────────────┐", "UTF-8"));
+					out.println(URLEncoder.encode("│ 현재 대기방 인원을 출력합니다. │", "UTF-8"));
+					out.println(URLEncoder.encode("└────────────────────────────────┘", "UTF-8"));
 					info = getWaitMember(u);
 					out.println(URLEncoder.encode(info, "UTF-8"));
 					break;
@@ -167,6 +274,53 @@ public class MultiServer {
 		} catch (Exception e) {
 			System.out.println("command예외2 : " + e);
 			e.printStackTrace();
+		}
+	}
+
+	public void exit(User user) {
+		userList.remove(user);
+		clientMap.remove(user.id);
+	}
+
+	public void monitoring(User user, String msg) {
+		Iterator<Room> it = roomList.iterator();
+		while (it.hasNext()) {
+			Room r = it.next();
+			if (r.roomName.equalsIgnoreCase(msg)) {
+				if (user.id.equals("master")) {
+					user.rNum = r.roomNumber;
+					r.roomUser.add(user);
+					waitRoom.roomUser.remove(user);
+					break;
+				}
+			}
+		}
+	}
+
+	public void managerDelete(User user, String msg) {
+		Iterator<Room> it = roomList.iterator();
+		while (it.hasNext()) {
+			Room r = it.next();
+			if (r.roomName.equals(msg)) {
+				if (user.id.equals("master")) {
+					for (int j = 0; j < userList.size(); j++) {
+						User u = userList.get(j);
+						u.rNum = 0;
+						waitRoom.roomUser.add(u);
+					}
+					roomList.remove(r);
+					return;
+				}
+			}
+		}
+	}
+
+	public void blackList(User user, String msg) throws SQLException {
+		if (user.id.equals("master")) {
+			String sql = "update member set blackList = 1 where id = ?";
+			pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, msg);
+			pstmt.executeUpdate();
 		}
 	}
 
@@ -197,43 +351,88 @@ public class MultiServer {
 		}
 	}
 
+	public void banWord(User user, String ban) {
+		user.banWord.add(ban);
+	}
+
+	public void banUser(User user, String banuser) {
+		Iterator<User> it = userList.iterator();
+		while (it.hasNext()) {
+			User u = it.next();
+			if (u.nickName.equals(banuser)) {
+				user.banUser.add(u);
+			}
+		}
+	}
+
 	public void createRoom(User user, String msg, String pw, PrintWriter out, BufferedReader in) throws IOException {
 		String check = "";
-		if (pw.equals("Y") || pw.equals("y")) {
-			out.println("비밀 번호를 입력하세요");
+		int num = 0;
+		out.println("┌──────────────────────┐");
+		out.println("│ 방 정원을 입력하세요 │");
+		out.println("└──────────────────────┘");
+		num = Integer.parseInt(in.readLine());
+		out.println("┌───────────────────────┐");
+		out.println("│ 방 정원은 " + num + "명 입니다. │");
+		out.println("└───────────────────────┘");
+		while (pw.equals("Y") || pw.equals("y")) {
+			if (check.equals(""))
+				out.println("┌────────────────────────────┐");
+			out.println("│   비밀 번호를 입력하세요   │");
+			out.println("└────────────────────────────┘");
+
 			check = in.readLine();
+			if (!check.equals(""))
+				break;
 		}
+
 		roomNumber++;
 		room = new Room();
 		room.roomName = msg;
 		room.roomNumber = roomNumber;
-		room.roomOwner = nickName;
+		room.roomOwner = user.nickName;
+		room.totalNumber = num;
+		room.memberNumber = 1;
 		room.passWord = check;
 		roomList.add(room);
 		room.roomUser.add(user);
 		user.rNum = roomNumber;
+		waitRoom.roomUser.remove(user);
 	}
 
 	public void enterRoom(User user, String msg, PrintWriter out, BufferedReader in) throws IOException {
 		Iterator<Room> it = roomList.iterator();
 		while (it.hasNext()) {
 			Room r = it.next();
-			if (r.roomName.equalsIgnoreCase(msg)) {
+			if (r.roomName.equals(msg) && r.memberNumber < r.totalNumber && user.rNum != r.roomNumber) {
 				if (!r.passWord.equals("")) {
-					out.println("비밀 번호를 입력하세요");
+					out.println("┌────────────────────────────┐");
+					out.println("│   비밀 번호를 입력하세요   │");
+					out.println("└────────────────────────────┘");
 					String check = in.readLine();
 					if (check.equals(r.passWord)) {
 						user.rNum = r.roomNumber;
+						r.memberNumber++;
 						r.roomUser.add(user);
+						waitRoom.roomUser.remove(user);
 						break;
 					} else {
-						out.println("비밀 번호가 틀렸습니다.");
+						out.println("┌────────────────────────────┐");
+						out.println("│   비밀 번호가 틀렸습니다.  │");
+						out.println("└────────────────────────────┘");
+						return;
 					}
 				}
 				user.rNum = r.roomNumber;
+				r.memberNumber++;
 				r.roomUser.add(user);
+				waitRoom.roomUser.remove(user);
 				break;
 			}
+//			else if (r.memberNumber == r.totalNumber) {
+//				out.println("인원이 가득찼습니다.");
+//				return;
+//			}
 		}
 	}
 
@@ -242,10 +441,119 @@ public class MultiServer {
 		while (it.hasNext()) {
 			Room r = it.next();
 			if (r.roomNumber == user.rNum) {
+				Iterator<User> uit = r.roomUser.iterator();
+				while (uit.hasNext()) {
+					if (uit.next().nickName.equals(user.nickName)) {
+						if (r.roomOwner.equals(user.nickName)) {
+							r.roomOwner = uit.next().nickName;
+						}
+					}
+				}
 				r.roomUser.remove(user);
+				r.memberNumber--;
+				user.rNum = 0;
+				waitRoom.roomUser.add(user);
+				if (r.memberNumber == 0) {
+					roomList.remove(r);
+				}
 			}
 		}
-		user.rNum = 0;
+	}
+
+	public void invite(User user, String msg, PrintWriter out, BufferedReader in) throws IOException {
+		Iterator<Room> it = roomList.iterator();
+		while (it.hasNext()) {
+			Room r = it.next();
+			if (r.roomNumber == user.rNum && r.roomOwner.equals(user.nickName)) {
+				for (int j = 0; j < userList.size(); j++) {
+					User u = userList.get(j);
+					if (u.nickName.equals(msg) && u.rNum != r.roomNumber && r.memberNumber < r.totalNumber) {
+						u.rNum = r.roomNumber;
+						r.memberNumber++;
+						r.roomUser.add(u);
+						waitRoom.roomUser.remove(u);
+//						for(int k=0;k<roomList.size();k++) {
+//							Room nr = roomList.get(k);
+//							if(nr.roomNumber == u.rNum) {
+//								nr.roomUser.remove(u);
+//								if(nr.memberNumber == 0) {
+//									roomList.remove(nr);
+//								}
+//							}
+//						}
+//						if (answer(u).equals("Y") || answer(u).equals("y")) {
+//						}
+					} else if (r.memberNumber == r.totalNumber) {
+						out.println("┌─────────────────────────┐");
+						out.println("│   인원이 가득찼습니다.  │");
+						out.println("└─────────────────────────┘");
+						return;
+					}
+				}
+			}
+		}
+	}
+
+	public void kickOut(User user, String msg) {
+		Iterator<Room> it = roomList.iterator();
+		while (it.hasNext()) {
+			Room r = it.next();
+			if (r.roomNumber == user.rNum && r.roomOwner.equals(user.nickName)) {
+				for (int j = 0; j < userList.size(); j++) {
+					User u = userList.get(j);
+					if (u.nickName.equals(msg)) {
+						r.memberNumber--;
+						u.rNum = 0;
+						r.roomUser.remove(u);
+						waitRoom.roomUser.add(u);
+					}
+				}
+			}
+		}
+	}
+
+	public void changeOwner(User user, String msg) {
+		Iterator<Room> it = roomList.iterator();
+		while (it.hasNext()) {
+			Room r = it.next();
+			if (r.roomNumber == user.rNum && r.roomOwner.equals(user.nickName)) {
+				for (int j = 0; j < userList.size(); j++) {
+					User u = userList.get(j);
+					if (u.nickName.equals(msg)) {
+						r.roomOwner = u.nickName;
+					}
+				}
+			}
+		}
+	}
+
+	public void roomDelete(User user) {
+		Iterator<Room> it = roomList.iterator();
+		while (it.hasNext()) {
+			Room r = it.next();
+			if (r.roomNumber == user.rNum && r.roomOwner.equals(user.nickName)) {
+				for (int j = 0; j < userList.size(); j++) {
+					User u = userList.get(j);
+					u.rNum = 0;
+					waitRoom.roomUser.add(u);
+				}
+				roomList.remove(r);
+				return;
+			}
+		}
+	}
+
+	public String answer(User user) throws IOException {
+		String ans = null;
+		PrintWriter it_out = (PrintWriter) clientMap.get(user.id);
+		if (it_out != null) {
+			it_out.println(user.nickName + "님이 초대 하셨습니다. 수락하시겠습니까? (Y/N)");
+			ans = user.getIn();
+			it_out.println(ans + " 응");
+			return ans;
+		} else
+			it_out.println("존재하지 않는 사용자입니다.");
+		return ans;
 	}
 
 	public String getRoomInfo() {
@@ -255,7 +563,7 @@ public class MultiServer {
 			Room r = it.next();
 			s += "RoomName : " + r.roomName + " RoomNumber : " + r.roomNumber;
 			if (it.hasNext())
-				s += "\t";
+				s += "\n";
 		}
 		return s;
 	}
@@ -268,7 +576,7 @@ public class MultiServer {
 			if (r.passWord.equals("")) {
 				s += "RoomName : " + r.roomName + " RoomNumber : " + r.roomNumber;
 				if (it.hasNext())
-					s += "\t";
+					s += "\n";
 			}
 		}
 		return s;
@@ -282,7 +590,7 @@ public class MultiServer {
 			if (!r.passWord.equals("") && r.roomNumber != 0) {
 				s += "RoomName : " + r.roomName + " RoomNumber : " + r.roomNumber;
 				if (it.hasNext())
-					s += "\t";
+					s += "\n";
 			}
 		}
 		return s;
@@ -298,7 +606,7 @@ public class MultiServer {
 					if (u.rNum == r.roomNumber) {
 						s += "닉네임 : " + u.nickName;
 						if (i < userList.size() - 1)
-							s += "\t";
+							s += "  ";
 					}
 				}
 		}
@@ -312,7 +620,7 @@ public class MultiServer {
 			if (u.rNum == 0) {
 				s += "닉네임 : " + u.nickName;
 				if (i < userList.size() - 1)
-					s += "\t";
+					s += "  ";
 			}
 		}
 		return s;
@@ -348,27 +656,43 @@ public class MultiServer {
 		public void run() {
 			String id = "";
 			String name = ""; // 클라이언트로부터 받은 이름을 저장할 변수.
+			User user = null;
 			try {
 				while (id.equals("")) {
 					id = doRun();
 				}
 				name = in.readLine();
-				out.println(URLEncoder.encode("닉네임을 입력하세요.", "UTF-8"));
-				name = in.readLine();
-
+				name = "";
+				while (name.equals("")) {
+					out.println(URLEncoder.encode("닉네임을 입력하세요.", "UTF-8"));
+					name = in.readLine();
+					for (int i = 0; i < userList.size(); i++) {
+						User u = userList.get(i);
+						if (u.nickName.equals(name)) {
+							out.println("이미 있는 닉네임입니다.");
+							name = "";
+						}
+					}
+				}
 				name = URLDecoder.decode(name, "UTF-8");
 				out.println(URLEncoder.encode("닉네임 : " + name, "UTF-8"));
-				sendAllMsg("", name + "님이 입장하셨습니다.");
-				User user = new User(name, id);
+				sendAllMsg("", "┌───────────────────────────────┐");
+				sendAllMsg("", "  ├ " + name + "님이 입장하셨습니다." + " ┤");
+				sendAllMsg("", "└───────────────────────────────┘");
+				user = new User(name, id);
 				userList.add(user);
+				user.banWord.add("ban");
 				Iterator<Room> it = roomList.iterator();
 				if (!roomList.contains(waitRoom))
 					roomList.add(waitRoom);
 
 				waitRoom.roomUser.add(user);
+
 				// 현재 객체가 가지고 있는 소켓을 제외하고 다른 소켓(클라이언트)들에게 접속을 알림
-				clientMap.put(name, out);// 해쉬멥에 키를 name으로 출력스트림 객체를 저장.
-				out.println(URLEncoder.encode("현재 접속자 수는 " + clientMap.size() + "명 입니다.", "UTF-8"));
+				clientMap.put(id, out);// 해쉬멥에 키를 name으로 출력스트림 객체를 저장.
+				out.println(URLEncoder.encode("┌───────────────────────────────┐", "UTF-8"));
+				out.println(URLEncoder.encode("│ 현재 접속자 수는 " + clientMap.size() + "명 입니다.  │", "UTF-8"));
+				out.println(URLEncoder.encode("└───────────────────────────────┘", "UTF-8"));
 				String s = "";
 				while (in != null) {
 					s = in.readLine();
@@ -382,15 +706,28 @@ public class MultiServer {
 			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {
-				// 예외가 발생할 때 퇴장. 해쉬맵에서 해당 데이터 제거.
-				// 보통 종료하거나 나가면 java.net.SocketException 예외발생
-				clientMap.remove(name);
-				sendAllMsg("", name + "님이 퇴장하셨습니다.");
+				clientMap.remove(id);
+				String uid = user.id;
+				userList.remove(user);
+				for (int i = 0; i < roomList.size(); i++) {
+					Room r = roomList.get(i);
+					if (r.roomNumber == user.rNum)
+						r.roomUser.remove(user);
+				}
+				sendAllMsg("", "┌───────────────────────────────┐");
+				sendAllMsg("", "  ├ " + name + "님이 퇴장하셨습니다." + " ┤");
+				sendAllMsg("", "└───────────────────────────────┘");
+				System.out.println("현재 접속자 수는 " + clientMap.size() + "명 입니다.");
+				// out.println(URLEncoder.encode(, "UTF-8"));
+				String sql = "update member set login = 0 where id = ?";
 				try {
-					out.println(URLEncoder.encode("현재 접속자 수는 " + clientMap.size() + "명 입니다.", "UTF-8"));
-				} catch (UnsupportedEncodingException e1) {
+					pstmt = con.prepareStatement(sql);
+					pstmt.setString(1, uid);
+					pstmt.executeUpdate();
+				} catch (SQLException e1) {
 					e1.printStackTrace();
 				}
+
 				try {
 					in.close();
 					out.close();
@@ -462,10 +799,11 @@ public class MultiServer {
 					} catch (IOException e1) {
 					}
 				}
+				id = signin(id, pw, out);
 				return id;
 			case "3":
 				out.println("프로그램을 종료합니다.");
-				return null;
+				return "";
 			default:
 				out.println("잘 못 입력하셨습니다.");
 				break;
@@ -500,7 +838,7 @@ public class MultiServer {
 	}
 
 	public String signin(String id, String pw, PrintWriter out) {
-		String sql = "select * from member where id = '?' and pw = '?'";
+		String sql = "select * from member where id = ? and pw = ?";
 		try {
 			pstmt = con.prepareStatement(sql);
 			pstmt.setString(1, id);
@@ -509,16 +847,19 @@ public class MultiServer {
 			if (rs.next()) {
 				if (rs.getInt(3) != 0) {
 					out.println(URLEncoder.encode("접속 불가 대상입니다.", "UTF-8"));
+					return "";
 				}
-				if (rs.getString(1).equals(id) && rs.getString(2).equals(pw)) {
+				if (rs.getInt(4) != 0) {
+					out.println("이미 로그인 되어있습니다.");
+					return "";
+				}
+				if (rs.getString(1).equals(id) && rs.getString(2).equals(pw) && rs.getInt(4) == 0) {
 					out.println(URLEncoder.encode("로그인 되었습니다.", "UTF-8"));
-					for (int i = 0; i < userList.size(); i++) {
-						User u = userList.get(i);
-						if (id == u.id) {
-							out.println("이미 로그인 되어있습니다.");
-							return;
-						}
-					}
+					sql = "update member set login = 1 where id = ? and pw = ?";
+					pstmt = con.prepareStatement(sql);
+					pstmt.setString(1, id);
+					pstmt.setString(2, pw);
+					pstmt.executeUpdate();
 					return id;
 				} else {
 					out.println(URLEncoder.encode("회원정보가 일치하지 않습니다.", "UTF-8"));
@@ -528,7 +869,7 @@ public class MultiServer {
 			e.printStackTrace();
 			System.out.println("알 수 없는 에러가 발생했습니다..");
 		}
-		return null;
+		return "";
 	}
 
 	public void connectDatabase() {
