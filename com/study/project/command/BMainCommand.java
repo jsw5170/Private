@@ -37,7 +37,11 @@ public class BMainCommand implements BCommand {
 		session.setAttribute("cpage", nPage);
 		session.setAttribute("bType", bType);
 		
-		ArrayList<BDto> dtos = dao.list(nPage,bType, col, search);
+		ArrayList<BDto> dtos = dao.list(nPage,"1", col, search);
 		request.setAttribute("list", dtos);
+		dtos = dao.list(nPage,"2", col, search);
+		request.setAttribute("notice", dtos);
+		dtos = dao.list(nPage,"3", col, search);
+		request.setAttribute("reference", dtos);
 	}
 }

@@ -26,9 +26,11 @@
 
 <title>JPS/Servlet 21-1</title>
 <style>
-		div .board {
+		div .board {/* 
 	    	height: 100px;
-	    	weight: 100px;
+	    	weight: 100px; */
+	    	padding: 10px;
+	    	margin: 10px;
 	    	border-width: 1px;
 	    	border-style: solid;
 	    	border-color: black;
@@ -61,11 +63,9 @@
 	</form>
 </ul>
   	  <div class="row">
-  	  <div class="board align-self-start"></div>
-  	  	<div class="board align-self-start">
+  	  <div class="board"></div>
+  	  	<div class="board">
   	  		<table class="table table-striped" cellpadding="0" cellspacing="0" border="1">
-  	  		<form action="list.do?bType=1"></form>
-  	  		<input type="hidden" name="bType" value="1">
 			<thead>
 				<tr>
 					<th scope="col" class="text-center">번호</th>
@@ -101,7 +101,7 @@
 			</c:forEach>		
 		</table>
   	  	</div>
-  	  	<div class="board align-self-center">
+  	  	<div class="board">
   	  			<table class="table table-striped" cellpadding="0" cellspacing="0" border="1">
 			<thead>
 				<tr>
@@ -114,7 +114,7 @@
 				</tr>
 			</thead>
 			<tbody>
-			<c:forEach items="${list}" var="dto">
+			<c:forEach items="${notice}" var="dto">
 			<tr>
 				<%
 					BDto dto = (BDto)pageContext.getAttribute("dto");
@@ -138,7 +138,10 @@
 			</c:forEach>		
 		</table>
   	  	</div>
-  	  	<div class="board align-self-end">
+  	  	<div class="board"></div>
+  	  	<div class="board"></div><div class="board"></div><div class="board"></div><div class="board"></div>
+  	  	<div class="board"></div><div class="board"></div><div class="board"></div>
+  	  	<div class="board">
   	  			<table class="table table-striped" cellpadding="0" cellspacing="0" border="1">
 			<thead>
 				<tr>
@@ -151,7 +154,7 @@
 				</tr>
 			</thead>
 			<tbody>
-			<c:forEach items="${list}" var="dto">
+			<c:forEach items="${reference}" var="dto">
 			<tr>
 				<%
 					BDto dto = (BDto)pageContext.getAttribute("dto");
