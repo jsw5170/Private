@@ -5,6 +5,7 @@
 <!DOCTYPE html>
 <% String name = (String)session.getAttribute("name");
 String bType = (String)session.getAttribute("bType");
+String id = (String)session.getAttribute("id");
 pageContext.setAttribute("br", "<br/>");
 pageContext.setAttribute("cn", "\n");
 %>
@@ -21,15 +22,13 @@ pageContext.setAttribute("cn", "\n");
 <script src="http://code.jquery.com/jquery.js"></script>
 <title>Insert title here</title>
 <script>
-	function modify(cId) {
-		   document.getElementById("modiOkbutton"+cId).style.visibility="visible";
-		   document.getElementById("modibutton"+cId).style.visibility="hidden";
-		}
-		function modifyOk(cId) {
-		   document.getElementById("modiOkbutton"+cId).style.visibility="hidden";
-		   document.getElementById("modibutton"+cId).style.visibility="visible";
-		}
-
+function updateComment() {
+	if($('#check').val() != '확인'){
+		alert("catpcha");
+		$('#check').focus();
+		return;
+	}
+}
 </script>
 <style>
 	th {
@@ -55,6 +54,26 @@ pageContext.setAttribute("cn", "\n");
 </style>
 </head>
 <body>
+<nav class="nav navbar-light" style="background-color: #e3f2fd;">
+	<a href="main.jsp"  class="nav-link disabled" tabindex="-1" aria-disabled="true">Home</a>
+	<a href="Notice.do?bType=2" class="nav-link">공지사항</a>
+	<a href="list.do?bType=1" class="nav-link">자유게시판</a>
+	<a href="referenceRoom.do?bType=3" class="nav-link">자료실</a>
+	<a href="Map.jsp" class="nav-link">위치</a>
+	<%if(id.equals("manager")) {%>
+	<a href="manager.jsp" class="nav-link">관리자 메뉴</a>
+	<%}%>
+	<a href="#" class="nav-link disabled" tabindex="-1" aria-disabled="true"> <%= name %>님 안녕하세요.</a>
+</nav>
+<ul class="nav justify-content-end navbar-light" style="background-color: #e3f2fd;">
+	<form action="logout.jsp" method="post" class="justify-content-end">
+		<input type="button" value="로그아웃" onclick="javascript:window.location='logout.jsp'" class="btn btn-primary">&nbsp; &nbsp; &nbsp;
+		<c:if test="${pw != null}">
+		<input type="button" value="정보수정" class="btn btn-primary"
+		onclick="javascript:window.location='modify.jsp'">		
+		</c:if>
+	</form>
+</ul>
 <iframe id="ifrm_filedown" style="position:absolute; z-index:1; visibility:hidden;"></iframe>
 	<table id="content" width="800" cellpadding="0" cellspacing="0" border="1" >
 		<tr>
@@ -122,11 +141,11 @@ pageContext.setAttribute("cn", "\n");
 									<input type="hidden" name="cNum" value="${comment.cNum}">
 									<input type="submit" value="삭제" class="btn btn-primary">
 								</form>
-								<div class="card-header" id="headingOne">
-								<input type="button" onclick="modify(${comment.cId})" value="수정">
-						        </div>
-								<!-- <a href="#updateForm" class="updateComment" data-toggle="updateForm" role="button"aria-expanded="false" aria-controls="updateForm">
-								수정</a> -->
+								<%-- <div class="card-header" id="headingOne">
+								 <form id="manager" action="" method="post">
+								<input type="submit" onclick="updateComment(${comment.cId})" value="수정">
+							  	</form>
+						        </div> --%>
 							</c:if>
 						</div>
 					</td>

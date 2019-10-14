@@ -156,7 +156,7 @@ $(document).ready(function() {
 			       <br />
 			       <input type="text" id="answer" name="answer" value="" />
 			       <input type="button" id="frmSubmit" value="확인" />
-			       <input id="check" type="hidden">
+			       <input id="check" type="text">
 				<input type="button" value="회원가입"  onclick="form_check()" class="form-control"> &nbsp;&nbsp;&nbsp;
 				<input type="button" value="로그인" onclick="javascript:window.location='login.jsp'" class="form-control"> &nbsp;&nbsp;&nbsp;
 				<input type="reset" class="form-control" value="취소">		

@@ -26,16 +26,38 @@
 
 <title>JPS/Servlet 21-1</title>
 <style>
-		div .board {/* 
-	    	height: 100px;
-	    	weight: 100px; */
-	    	padding: 10px;
-	    	margin: 10px;
-	    	border-width: 1px;
-	    	border-style: solid;
-	    	border-color: black;
+	div .row {
+	   	border-width: 1px;
+	   	border-style: dashed;
+	   	border-color: red;
     	}
- 
+	div #board1 {
+	   	padding: 10px;
+	   	margin: 10px;
+	   	border-width: 1px;
+	   	border-style: solid;
+	   	border-color: black;
+	   	position:absolute; 
+		top:10%; left:5%; 
+    }
+    div #board2 {
+	   	padding: 10px;
+	   	margin: 10px;
+	   	border-width: 1px;
+	   	border-style: solid;
+	   	border-color: black;
+	   	position:absolute; 
+		top:10%; left:50%;  
+    }
+    div #board3 {
+	   	padding: 10px;
+	   	margin: 10px;
+	   	border-width: 1px;
+	   	border-style: solid;
+	   	border-color: black;
+	   	position:absolute; 
+		top:45%; left:5%; 
+    }
 </style>
 </head>
 <body>
@@ -45,6 +67,7 @@
 	<a href="list.do?bType=1" class="nav-link">자유게시판</a>
 	<a href="referenceRoom.do?bType=3" class="nav-link">자료실</a>
 	<a href="Map.jsp" class="nav-link">위치</a>
+	<a href="roulette.jsp" class="nav-link">룰렛</a>
 	<%if(id.equals("manager")) {%>
 	<a href="manager.jsp" class="nav-link">관리자 메뉴</a>
 	<%}%>
@@ -63,47 +86,10 @@
 	</form>
 </ul>
   	  <div class="row">
-  	  <div class="board"></div>
-  	  	<div class="board">
+  	  	<div id="board1">
   	  		<table class="table table-striped" cellpadding="0" cellspacing="0" border="1">
 			<thead>
-				<tr>
-					<th scope="col" class="text-center">번호</th>
-					<th scope="col" class="text-center">이름</th>
-					<th scope="col" class="text-center">제목</th>
-					<th scope="col" class="text-center">날짜</th>
-					<th scope="col" class="text-center">조회수</th>
-					<th scope="col" class="text-center">추천</th>
-				</tr>
-			</thead>
-			<tbody>
-			<c:forEach items="${list}" var="dto">
-			<tr>
-				<%
-					BDto dto = (BDto)pageContext.getAttribute("dto");
-					java.util.Date date = dto.getbDate();
-					long now = System.currentTimeMillis();
-					long inputDate = date.getTime();
-					long cha = ((now - inputDate) - (1000*60*60*24*3));
-				%>
-				<td class="text-center">${dto.bId} </td>
-				<td class="text-center">${dto.bName} </td>
-				<td>
-					<c:forEach begin="1" end="${dto.bIndent}">-</c:forEach>
-					<a href="content_view.do?bType=1&bId=${dto.bId}" class="text-center">${dto.bTitle}
-						<c:if test="<%=cha < 0%>"><span class="badge badge-danger">New</span></c:if>
-					</a> 
-				</td>
-				<td class="text-center">${dto.bDate} </td>
-				<td class="text-center">${dto.bHit} </td>
-				<td class="text-center">${dto.bLike} </td>
-			</tr>
-			</c:forEach>		
-		</table>
-  	  	</div>
-  	  	<div class="board">
-  	  			<table class="table table-striped" cellpadding="0" cellspacing="0" border="1">
-			<thead>
+				<tr><th colspan="6" class="text-center">공지사항</th></tr>
 				<tr>
 					<th scope="col" class="text-center">번호</th>
 					<th scope="col" class="text-center">이름</th>
@@ -122,12 +108,13 @@
 					long now = System.currentTimeMillis();
 					long inputDate = date.getTime();
 					long cha = ((now - inputDate) - (1000*60*60*24*3));
+					session.setAttribute("bType", "2");
 				%>
 				<td class="text-center">${dto.bId} </td>
 				<td class="text-center">${dto.bName} </td>
 				<td>
 					<c:forEach begin="1" end="${dto.bIndent}">-</c:forEach>
-					<a href="content_view.do?bType=1&bId=${dto.bId}" class="text-center">${dto.bTitle}
+					<a href="content_view.do?bType=2&bId=${dto.bId}" class="text-center">${dto.bTitle}
 						<c:if test="<%=cha < 0%>"><span class="badge badge-danger">New</span></c:if>
 					</a> 
 				</td>
@@ -138,12 +125,10 @@
 			</c:forEach>		
 		</table>
   	  	</div>
-  	  	<div class="board"></div>
-  	  	<div class="board"></div><div class="board"></div><div class="board"></div><div class="board"></div>
-  	  	<div class="board"></div><div class="board"></div><div class="board"></div>
-  	  	<div class="board">
+  	  	<div id="board2">
   	  			<table class="table table-striped" cellpadding="0" cellspacing="0" border="1">
 			<thead>
+				<tr><th colspan="6" class="text-center">자료실</th></tr>
 				<tr>
 					<th scope="col" class="text-center">번호</th>
 					<th scope="col" class="text-center">이름</th>
@@ -162,6 +147,46 @@
 					long now = System.currentTimeMillis();
 					long inputDate = date.getTime();
 					long cha = ((now - inputDate) - (1000*60*60*24*3));
+					session.setAttribute("bType", "3");
+				%>
+				<td class="text-center">${dto.bId} </td>
+				<td class="text-center">${dto.bName} </td>
+				<td>
+					<c:forEach begin="1" end="${dto.bIndent}">-</c:forEach>
+					<a href="content_view.do?bType=3&bId=${dto.bId}" class="text-center">${dto.bTitle}
+						<c:if test="<%=cha < 0%>"><span class="badge badge-danger">New</span></c:if>
+					</a> 
+				</td>
+				<td class="text-center">${dto.bDate} </td>
+				<td class="text-center">${dto.bHit} </td>
+				<td class="text-center">${dto.bLike} </td>
+			</tr>
+			</c:forEach>		
+		</table>
+  	  	</div>
+  	  	<div id="board3">
+  	  			<table class="table table-striped" cellpadding="0" cellspacing="0" border="1">
+			<thead>
+				<tr><th colspan="6" class="text-center">자유게시판</th></tr>
+				<tr>
+					<th scope="col" class="text-center">번호</th>
+					<th scope="col" class="text-center">이름</th>
+					<th scope="col" class="text-center">제목</th>
+					<th scope="col" class="text-center">날짜</th>
+					<th scope="col" class="text-center">조회수</th>
+					<th scope="col" class="text-center">추천</th>
+				</tr>
+			</thead>
+			<tbody>
+			<c:forEach items="${list}" var="dto">
+			<tr>
+				<%
+					BDto dto = (BDto)pageContext.getAttribute("dto");
+					java.util.Date date = dto.getbDate();
+					long now = System.currentTimeMillis();
+					long inputDate = date.getTime();
+					long cha = ((now - inputDate) - (1000*60*60*24*3));
+					session.setAttribute("bType", "1");
 				%>
 				<td class="text-center">${dto.bId} </td>
 				<td class="text-center">${dto.bName} </td>

@@ -3,6 +3,7 @@
 <!DOCTYPE html>
 <% String name = (String)session.getAttribute("name");
 String bType = (String)session.getAttribute("bType");
+String id = (String)session.getAttribute("id");
 %>
 <html>
 <head>
@@ -40,6 +41,26 @@ String bType = (String)session.getAttribute("bType");
 </style>
 </head>
 <body>
+<nav class="nav navbar-light" style="background-color: #e3f2fd;">
+	<a href="main.jsp"  class="nav-link disabled" tabindex="-1" aria-disabled="true">Home</a>
+	<a href="Notice.do?bType=2" class="nav-link">공지사항</a>
+	<a href="list.do?bType=1" class="nav-link">자유게시판</a>
+	<a href="referenceRoom.do?bType=3" class="nav-link">자료실</a>
+	<a href="Map.jsp" class="nav-link">위치</a>
+	<%if(id.equals("manager")) {%>
+	<a href="manager.jsp" class="nav-link">관리자 메뉴</a>
+	<%}%>
+	<a href="#" class="nav-link disabled" tabindex="-1" aria-disabled="true"> <%= name %>님 안녕하세요.</a>
+</nav>
+<ul class="nav justify-content-end navbar-light" style="background-color: #e3f2fd;">
+	<form action="logout.jsp" method="post" class="justify-content-end">
+		<input type="button" value="로그아웃" onclick="javascript:window.location='logout.jsp'" class="btn btn-primary">&nbsp; &nbsp; &nbsp;
+		<c:if test="${pw != null}">
+		<input type="button" value="정보수정" class="btn btn-primary"
+		onclick="javascript:window.location='modify.jsp'">
+		</c:if>
+	</form>
+</ul>
 	<table id="content" width="800" cellpadding="0" cellspacing="0" border="1" >
 		<form action="reply.do" method="post">
 			<input type="hidden" name="bId" value="${reply_view.bId}">

@@ -3,6 +3,7 @@
     <%@ taglib prefix="c" uri = "http://java.sun.com/jsp/jstl/core" %>
     <% 
 	String id = (String)session.getAttribute("id");
+    String name = (String)session.getAttribute("name");
 %>
 <!DOCTYPE html>
 <html>
@@ -18,14 +19,16 @@
 </head>
 <body>
 <nav class="nav navbar-light" style="background-color: #e3f2fd;">
-	<a href="main.jsp"  class="nav-link">Home</a>
+	<a href="main.do"  class="nav-link">Home</a>
 	<a href="Notice.do?bType=2" class="nav-link">공지사항</a>
 	<a href="list.do?bType=1" class="nav-link">자유게시판</a>
 	<a href="referenceRoom.do?bType=3" class="nav-link">자료실</a>
 	<a href="Map.jsp" class="nav-link disabled" tabindex="-1" aria-disabled="true">위치</a>
+	<a href="roulette.jsp" class="nav-link">룰렛</a>
 	<%if(id.equals("manager")) {%>
 	<a href="manager.jsp" class="nav-link">관리자 메뉴</a>
 	<%}%>
+	<a href="#" class="nav-link disabled" tabindex="-1" aria-disabled="true"> <%= name %>님 안녕하세요.</a>
 </nav>
 <ul class="nav justify-content-end navbar-light" style="background-color: #e3f2fd;">
 	<form action="logout.jsp" method="post" class="justify-content-end">

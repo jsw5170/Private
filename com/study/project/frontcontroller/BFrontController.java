@@ -121,10 +121,6 @@ public class BFrontController extends HttpServlet {
 			command = new BReplyCommand();
 			command.execute(request, response);
 			viewPage = "list.do?page=" + curPage+"&bType="+bType;;
-		} else if(com.equals("/main.do")) {
-			command = new BReplyCommand();
-			command.execute(request, response);
-			viewPage = "main.jsp";
 		} else if(com.equals("/writeComment.do")) {
 			command = new CWriteCommand();
 			command.execute(request, response);
@@ -172,7 +168,10 @@ public class BFrontController extends HttpServlet {
 			command.execute(request, response);
 			viewPage = "main.jsp";
 		} 
-		
+		 /*
+		 * else if(com.equals("/main.do")) { command = new BReplyCommand();
+		 * command.execute(request, response); viewPage = "main.jsp"; }
+		 */
 		RequestDispatcher dispatcher = request.getRequestDispatcher(viewPage);
 		dispatcher.forward(request, response);
 	}
